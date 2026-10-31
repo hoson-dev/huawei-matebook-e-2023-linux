@@ -114,3 +114,9 @@ display/
         ├── gpu/drm/i915/
         └── platform/x86/intel_ips.h
 ```
+
+---
+
+## 👤 Author & Maintainer
+- **hoson** ([GitHub](https://github.com/hoson-dev) | [𝕏 / Twitter: @hoson.dn](https://x.com/hoson.dn))
+

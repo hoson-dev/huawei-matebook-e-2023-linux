@@ -4,6 +4,8 @@
 [![Platform](https://img.shields.io/badge/Platform-Linux-orange.svg)](https://kernel.org)
 [![Device](https://img.shields.io/badge/Hardware-Huawei%20MateBook%20E%202023-brightgreen.svg)]()
 [![Tested on](https://img.shields.io/badge/Kernel-6.x%20%7C%207.x-success.svg)]()
+[![Author](https://img.shields.io/badge/Author-hoson-181717?style=flat&logo=github)](https://github.com/hoson-dev)
+[![Twitter / X](https://img.shields.io/badge/%F0%9D%95%8F%20(Twitter)-%40hoson.dn-000000?style=flat&logo=x&logoColor=white)](https://x.com/hoson.dn)
 
 Complete hardware enablement guide and automated driver suite for the **Huawei MateBook E 2023 2-in-1 (`DRR-W56` / `DRR-WXX`)** on Linux (Ubuntu, Debian, Arch Linux, Fedora, Linux Mint, Pop!_OS, etc.).
 
@@ -128,6 +130,14 @@ If you want to share individual driver packages without cloning the entire repos
 - `huawei-matebook-e-2023-sound.zip` / `huawei-matebook-e-2023-sound.tar.gz` (~13 KB)
 
 ---
+
+## 👤 Author & Maintainer
+
+Maintained with ❤️ by **hoson**:
+- 🌐 **GitHub:** [@hoson-dev](https://github.com/hoson-dev)
+- 𝕏 **Twitter / X:** [@hoson.dn](https://x.com/hoson.dn)
+
+Feel free to connect or drop a message if you find this project helpful or need assistance!
 
 ## 🤝 Contributing & Feedback
 Contributions, issues, and pull requests are warmly welcome! If you test this on other MateBook E models or Linux distributions, please report your findings.

@@ -93,3 +93,9 @@ sound/
    - The CX11970 codec employs two distinct DACs: DAC `0x22` (Speaker) and DAC `0x23` (Bass Speaker).
    - Standard PipeWire/PulseAudio desktop mixers only adjust DAC `0x22`.
    - The included daemon runs an efficient ALSA event listener thread (`amixer events`) that instantly synchronizes `cset numid=5,6` with `numid=3,4` in hardware. This ensures volume adjustments remain balanced across all 4 speakers without channel mismatch, even at whisper-quiet levels (< 25%).
+
+---
+
+## 👤 Author & Maintainer
+- **hoson** ([GitHub](https://github.com/hoson-dev) | [𝕏 / Twitter: @hoson.dn](https://x.com/hoson.dn))
+
