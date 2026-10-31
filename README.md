@@ -1,16 +1,34 @@
-# Huawei MateBook E 2023 (DRR-W56 / DRR-WXX) - Linux Support Guide & Drivers
+# Huawei MateBook E 2023 (DRR-W56 / DRR-WXX) Linux Support Guide & Drivers
 
-Dự án hỗ trợ hoàn thiện Linux cho dòng máy tính bảng lai 2-trong-1 **Huawei MateBook E 2023 (Model DRR-W56 / DRR-WXX)**.
+[![License: GPL-2.0](https://img.shields.io/badge/License-GPL--2.0-blue.svg)](https://opensource.org/licenses/GPL-2.0)
+[![Platform](https://img.shields.io/badge/Platform-Linux-orange.svg)](https://kernel.org)
+[![Device](https://img.shields.io/badge/Hardware-Huawei%20MateBook%20E%202023-brightgreen.svg)]()
+[![Tested on](https://img.shields.io/badge/Kernel-6.x%20%7C%207.x-success.svg)]()
 
-Khắc phục triệt để 2 vấn đề lớn nhất của dòng máy này khi cài đặt các bản phân phối Linux (Ubuntu, Debian, Fedora, Arch Linux, Linux Mint, Pop!_OS,...):
-1. 🖥️ **Màn hình OLED:** Sửa lỗi **đen màn hình (Black Screen)** khi khởi động bằng DKMS driver patch Intel MIPI DSI.
-2. 🔊 **Hệ thống 4 loa:** Kích hoạt đầy đủ **4 loa stereo (2 loa tép + 2 loa trầm)**, chất âm trong trẻo, âm lượng lớn chuẩn Hi-Fi, tự động kích hoạt sau khi Sleep/Wake, đồng bộ âm lượng phần cứng ALSA chống lệch loa.
+Complete hardware enablement guide and automated driver suite for the **Huawei MateBook E 2023 2-in-1 (`DRR-W56` / `DRR-WXX`)** on Linux (Ubuntu, Debian, Arch Linux, Fedora, Linux Mint, Pop!_OS, etc.).
+
+This repository resolves the two major obstacles when running Linux on this device:
+1. 🖥️ **OLED MIPI DSI Display (Black Screen Fix):** Fixes the pitch-black display issue on boot with an automated DKMS driver that patches Intel `i915` periodic command mode frame updates.
+2. 🔊 **Quad-Speaker Hi-Fi Audio (4 Speakers Enabled):** Fully activates all 4 speakers (2 top tweeters + 2 bottom woofers via dual FourSemi FS2119 SmartPAs), complete with an ALSA real-time hardware volume sync daemon and suspend/resume support.
 
 ---
 
-## 🚀 Cài đặt nhanh (Quick Start)
+## 💻 Hardware Specifications
 
-Clone repository này về máy và chạy script cài đặt tổng hợp:
+| Component | Specification |
+| :--- | :--- |
+| **Model** | Huawei MateBook E 2023 (`DRR-W56` / `DRR-W76` / `DRR-WXX`) |
+| **Board** | `DRR_WXX_PCB` |
+| **Processor** | 12th Gen Intel Core i7-1260U / i5-1230U (Alder Lake-P) |
+| **Display Panel** | 12.6" OLED (3072 × 1920 @ 60/120 Hz) connected via Intel MIPI DSI |
+| **Audio Codec** | Conexant / Senary CX11970 (`0x14f120d0`, Subsystem: `0x1ec93e65`) |
+| **Smart Amplifiers** | 2× FourSemi FS2119 Class-D SmartPAs on I2C (`0x69` Left, `0x6b` Right) |
+
+---
+
+## 🚀 Quick Start (Automated All-in-One Installer)
+
+Clone this repository and run the master installer:
 
 ```bash
 git clone https://github.com/hoson-dev/huawei-matebook-e-2023-linux.git
@@ -18,79 +36,102 @@ cd huawei-matebook-e-2023-linux
 sudo ./install-all.sh
 ```
 
-Menu sẽ cho bạn lựa chọn:
-- `1` : Cài đặt tất cả (cả Màn hình OLED và Âm thanh 4 loa) **[Khuyên dùng]**
-- `2` : Chỉ cài Driver Màn hình OLED DSI
-- `3` : Chỉ cài Driver Âm thanh 4 Loa Stereo
+The interactive menu will prompt:
+- `1` : **Install ALL (Display OLED + Quad-Speaker Audio) [Recommended]**
+- `2` : Install OLED DSI Display Driver only (Black screen fix)
+- `3` : Install Quad-Speaker Audio Driver only
 
-Sau khi cài đặt xong, khởi động lại máy:
+After installation completes, reboot your device:
 ```bash
 sudo reboot
 ```
 
 ---
 
-## 📁 Cấu trúc Repository
+## 📁 Repository Structure
 
 ```text
 huawei-matebook-e-2023-linux/
-├── install-all.sh       # Menu cài đặt tổng hợp tất cả driver
-├── README.md            # Tài liệu hướng dẫn chính
-├── display/             # Gói Driver Màn hình OLED MIPI DSI (Fix Đen Màn Hình)
-│   ├── install.sh       # Script cài đặt DKMS driver màn hình
-│   ├── uninstall.sh     # Gỡ bỏ và khôi phục driver i915 gốc
-│   ├── check_status.sh  # Kiểm tra trạng thái cổng DSI-1 & DKMS
-│   ├── README.md        # Hướng dẫn chi tiết & cách cứu hộ khi đen màn
-│   └── src/             # Mã nguồn module i915 đã patch
-└── sound/               # Gói Driver Âm thanh 4 Loa Stereo
-    ├── install.sh       # Script cài đặt driver âm thanh & daemon
-    ├── uninstall.sh     # Gỡ bỏ sạch sẽ driver âm thanh
-    ├── test_speakers.py # Script kiểm tra âm thanh từng loa
-    ├── README.md        # Hướng dẫn chi tiết cấu hình âm thanh
-    ├── firmware/        # Firmware DSP FS2119 / CS35L41
-    ├── modprobe/        # Cấu hình ALSA HDA snd-hda-intel
-    ├── sleep/           # Script khôi phục SmartPA khi Sleep/Wake
-    ├── daemon/          # Python ALSA Hardware Volume Sync Daemon
-    └── systemd/         # Systemd services tự khởi động cùng máy
+├── install-all.sh       # Master installer for both display and audio
+├── README.md            # Main documentation
+├── display/             # OLED MIPI DSI Display Driver (Black Screen Fix)
+│   ├── install.sh       # Automated DKMS installer
+│   ├── uninstall.sh     # Clean uninstaller (restores stock i915)
+│   ├── check_status.sh  # Diagnostic script for DKMS and DSI-1 status
+│   ├── README.md        # Detailed display documentation & recovery steps
+│   ├── matebook-e-dsi.patch # DSI command mode periodic update patch
+│   └── src/             # Ready-to-build i915 driver source tree
+└── sound/               # Quad-Speaker Stereo Audio Driver
+    ├── install.sh       # Automated audio installer & service setup
+    ├── uninstall.sh     # Clean audio uninstaller
+    ├── test_speakers.py # 4-speaker stereo channel verification test
+    ├── README.md        # Detailed audio documentation & architecture
+    ├── firmware/        # DSP binary configurations (fs2119_config.dat, huawei-diracr.fw)
+    ├── modprobe/        # ALSA snd-hda-intel module configurations
+    ├── sleep/           # Systemd suspend/resume hook script
+    ├── daemon/          # Real-time ALSA hardware volume synchronizer daemon
+    └── systemd/         # Systemd service unit definitions
 ```
 
 ---
 
-## 🖥️ Chi tiết: Sửa lỗi Đen Màn Hình (Display Driver)
+## 🖥️ Display: OLED MIPI DSI (Black Screen Fix)
 
-Màn hình OLED 3072x1920 của MateBook E 2023 sử dụng giao tiếp **Intel MIPI DSI command mode**. Kernel Linux mặc định chưa kích hoạt `DSI_PERIODIC_FRAME_UPDATE_ENABLE` khiến màn hình không nhận khung hình và tắt ngúm.
+### The Problem
+The MateBook E 2023 uses a high-resolution 12.6" OLED display driven over **Intel MIPI DSI dual-link command mode**. 
+In upstream Linux kernels, `gen11_dsi_deconfigure_transcoder()` in the `i915` driver clears the periodic frame update bit during initialization and never re-enables it. Because command-mode panels require periodic updates to generate vblank interrupts, the panel stops receiving frames, resulting in a **completely pitch-black screen** while the OS continues to run normally in the background.
 
-Gói trong thư mục `display/` sử dụng DKMS để thay thế module `i915.ko`, giúp màn hình sáng lên và hoạt động ở đúng độ phân giải native 3072x1920 @ 60/120Hz.
+### How to Access the System if You Have a Black Screen
+If you have just installed Linux and your screen is currently black, choose one of these 3 access methods:
+1. **External Monitor via USB-C (Recommended):** Connect an external monitor or TV via USB-C / HDMI. External outputs work out-of-the-box. Open a terminal and run the installer.
+2. **Boot with `nomodeset` in GRUB:**
+   - At the GRUB boot menu, press **`e`** to edit the boot parameters.
+   - Locate the line starting with `linux` (typically ending with `quiet splash`).
+   - Append `nomodeset` to the end of the line.
+   - Press **`F10`** (or `Ctrl + X`) to boot into basic safe graphics mode.
+   - *Note: After installing the DKMS driver, remove `nomodeset` from `/etc/default/grub` so `i915` can drive the OLED panel natively.*
+3. **SSH Access:** Connect via SSH over local Wi-Fi or USB tethering from another machine or phone.
 
-> **Nếu màn hình máy đang bị đen:**
-> 1. Cắm ra màn hình rời qua cổng Type-C (màn ngoài luôn lên bình thường).
-> 2. Hoặc tại menu GRUB, nhấn phím `e` rồi thêm `nomodeset` vào cuối dòng `linux ... quiet splash` để vào giao diện an toàn tạm thời.
-> 3. Xem chi tiết tại [display/README.md](display/README.md).
+### Verification
+Run [`display/check_status.sh`](display/check_status.sh) to verify that DKMS is active, kernel module versions match, and `DSI-1` is connected at native 3072×1920.
 
----
-
-## 🔊 Chi tiết: Kích hoạt Hệ thống 4 Loa (Sound Driver)
-
-MateBook E 2023 sử dụng chip âm thanh Realtek ALC245 kết hợp cùng 2 ampli thông minh SmartPA FS2119 / CS35L41 qua giao tiếp I2C:
-- **Loa trên (Tweeter / 0x14):** 2 loa tép (trên đỉnh máy).
-- **Loa dưới (Bass Woofer / 0x17):** 2 loa trầm (đáy máy).
-
-Gói trong thư mục `sound/` giải quyết triệt để:
-- Nạp đầy đủ firmware DSP SmartPA.
-- Cấu hình ALSA `alc245-huawei-matebook-e` nạp GPIO bật nguồn ampli.
-- Chạy daemon đồng bộ phần cứng ALSA chống hiện tượng lệch loa khi vặn nhỏ âm lượng.
-- Tự động nạp lại DSP sau khi máy ngủ (Sleep/Resume).
-- Xem chi tiết tại [sound/README.md](sound/README.md).
+See [display/README.md](display/README.md) for full technical documentation.
 
 ---
 
-## 🛠️ Yêu cầu hệ thống
-- **Dòng máy:** Huawei MateBook E 2023 (DRR-W56, DRR-W76 hoặc các phiên bản tương đương).
-- **Hệ điều hành:** Ubuntu 22.04+, Debian 12+, Arch Linux, Fedora 39+, Linux Mint 21+, Pop!_OS,...
-- **Kernel:** Linux 6.x / 7.x (Generic hoặc OEM).
+## 🔊 Audio: Quad-Speaker Stereo System
+
+### The Problem
+Stock Linux kernels only detect the 2 top tweeters through the primary ALSA DAC, leaving the 2 bottom bass woofers completely silent. Furthermore, the external FourSemi FS2119 SmartPAs require precise GPIO power sequencing and I2C registers to unmute. When software mixers attempt to adjust volume, the two independent DACs (`0x22` and `0x23`) drift apart, causing imbalanced audio at lower volume levels.
+
+### The Solution
+The package in [`sound/`](sound/):
+- Powers on the SmartPAs using GPIO 72 (`QPIN`) and GPIO 179 (`PPIN`).
+- Loads the DSP firmware configurations into the dual FS2119 chips over I2C (`0x69` & `0x6b`).
+- Runs a lightweight background daemon that listens to ALSA hardware mixer events (`amixer events`) and synchronizes the bass speaker DAC 1:1 with the master speaker DAC in real time.
+- Restores DSP parameters automatically upon waking from Sleep (S3/Modern Standby).
+
+### Speaker Verification
+Test each speaker and channel separation by running:
+```bash
+python3 sound/test_speakers.py
+```
+
+See [sound/README.md](sound/README.md) for full technical documentation.
 
 ---
 
-## 📜 Giấy phép & Lời cảm ơn
-- Patch DSI dựa trên nghiên cứu và chia sẻ của cộng đồng Arch Linux ([Arch Linux BBS #303555](https://bbs.archlinux.org/viewtopic.php?id=303555)).
-- Mã nguồn driver tuân thủ giấy phép GPL-2.0.
+## 📦 Standalone Distribution Packages
+
+If you want to share individual driver packages without cloning the entire repository, pre-packaged `.zip` and `.tar.gz` archives are available under [Releases v1.0.0](https://github.com/hoson-dev/huawei-matebook-e-2023-linux/releases/tag/v1.0.0):
+- `matebook-e-dsi-dkms.zip` / `matebook-e-dsi-dkms.tar.gz` (~2.6 MB)
+- `huawei-matebook-e-2023-sound.zip` / `huawei-matebook-e-2023-sound.tar.gz` (~13 KB)
+
+---
+
+## 🤝 Contributing & Feedback
+Contributions, issues, and pull requests are warmly welcome! If you test this on other MateBook E models or Linux distributions, please report your findings.
+
+## 📄 License & Acknowledgments
+- Display DSI patch based on research from the [Arch Linux Community Forum #303555](https://bbs.archlinux.org/viewtopic.php?id=303555).
+- Released under the [GNU General Public License v2.0 (GPL-2.0)](LICENSE).

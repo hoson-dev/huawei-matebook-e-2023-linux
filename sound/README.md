@@ -1,49 +1,53 @@
-# Bộ Driver Âm Thanh 4 Loa cho Huawei MateBook E 2023 (Linux)
-### (Huawei MateBook E 2023 `DRR-WXX` Quad-Speaker Linux Audio Driver)
+# Huawei MateBook E 2023 - Quad-Speaker Stereo Audio Driver (Linux)
 
-Dự án này cung cấp driver hoàn chỉnh, tự động kích hoạt toàn bộ hệ thống **4 loa (2 loa tép trên + 2 loa trầm dưới)** trên laptop lai **Huawei MateBook E 2023 (`DRR-WXX`)** chạy Linux (Ubuntu, Debian, Fedora, Arch...).
-
----
-
-## 💻 Thiết bị hỗ trợ
-* **Model:** Huawei MateBook E 2023 (Mã máy: `DRR-WXX`, Bo mạch: `DRR_WXX_PCB`)
-* **CPU:** Intel Core i7-1260U / i5-1230U (Intel Alder Lake-P Smart Sound Technology)
-* **HDA Codec:** Conexant / Senary CX11970 (Vendor ID: `0x14f120d0`, Subsystem: `0x1ec93e65`)
-* **Smart Amps:** 2x FourSemi FS2119 Class-D SmartPAs trên I2C Bus:
-  * Địa chỉ `0x69`: Phụ trách 2 loa bên **Trái** (Ch1: Loa tép trên Trái, Ch2: Loa trầm dưới Trái)
-  * Địa chỉ `0x6b`: Phụ trách 2 loa bên **Phải** (Ch1: Loa tép trên Phải, Ch2: Loa trầm dưới Phải)
+Complete audio driver package enabling all **4 speakers (2 top tweeters + 2 bottom woofers)** on the **Huawei MateBook E 2023 (`DRR-WXX`)** 2-in-1 laptop running Linux (Ubuntu, Debian, Fedora, Arch Linux, Linux Mint, Pop!_OS, etc.).
 
 ---
 
-## 🚀 Hướng dẫn cài đặt nhanh (1 dòng lệnh)
+## 💻 Hardware Specifications
 
-Mở Terminal trong thư mục này và chạy:
+* **Model:** Huawei MateBook E 2023 (`DRR-WXX`, Motherboard: `DRR_WXX_PCB`)
+* **CPU:** 12th Gen Intel Core i7-1260U / i5-1230U (Intel Alder Lake-P Smart Sound Technology)
+* **Audio Codec:** Conexant / Senary CX11970 (Vendor ID: `0x14f120d0`, Subsystem: `0x1ec93e65`)
+* **Smart Amplifiers:** 2× FourSemi FS2119 Class-D SmartPAs on I2C bus:
+  * Address `0x69`: Controls **Left** speakers (Ch1: Top Tweeter, Ch2: Bottom Woofer)
+  * Address `0x6b`: Controls **Right** speakers (Ch1: Top Tweeter, Ch2: Bottom Woofer)
+
+---
+
+## 🚀 Quick Start (Automated 1-Click Install)
+
+Open a terminal in this directory and run:
 
 ```bash
+cd sound
 sudo ./install.sh
 ```
 
-Script sẽ tự động:
-1. Cài đặt các gói phụ thuộc (`python3`, `python3-smbus2`, `python3-libgpiod`, `alsa-utils`, `i2c-tools`).
-2. Nạp firmware cấu hình SmartPA (`fs2119_config.dat`) và patch Codec Conexant CX11970 (`huawei-diracr.fw`).
-3. Cài đặt background daemon (`huawei-sound-daemon.py`) và sleep hook (`huawei-sound-sleep.sh`).
-4. Kích hoạt systemd service chạy ngầm tự khởi động cùng máy, đồng bộ âm lượng 4 loa thời gian thực và khôi phục khi thức dậy từ chế độ Sleep.
+### The script automatically:
+1. Installs system dependencies (`python3`, `python3-smbus2`, `python3-libgpiod`, `alsa-utils`, `i2c-tools`).
+2. Deploys SmartPA DSP configuration firmware (`fs2119_config.dat`) and Conexant CX11970 HDA verb patches (`huawei-diracr.fw`) to `/lib/firmware/`.
+3. Sets up ALSA kernel options in `/etc/modprobe.d/huawei-sound.conf`.
+4. Installs the background hardware sync daemon (`/usr/local/bin/huawei-sound-daemon.py`) and systemd sleep hook (`/usr/lib/systemd/system-sleep/huawei-sound-sleep.sh`).
+5. Enables and starts the `huawei-sound-daemon.service` systemd unit to start automatically on boot.
 
 ---
 
-## 🎧 Kiểm tra âm thanh sau khi cài đặt
+## 🎧 Speaker Testing & Channel Verification
 
-Để kiểm tra âm thanh cả 4 loa và độ tách bạch stereo Trái/Phải:
+Verify all 4 speakers and stereo channel separation by running the interactive test:
 
 ```bash
 python3 test_speakers.py
 ```
 
+This plays pure frequency tones across all 4 discrete speaker channels (Top Left, Bottom Left, Top Right, Bottom Right) to confirm balanced stereo imaging.
+
 ---
 
-## 🗑️ Gỡ bỏ cài đặt (Uninstall)
+## 🗑️ Uninstallation
 
-Nếu muốn khôi phục về trạng thái gốc của hệ thống:
+To completely remove the audio drivers, services, and restore default system audio:
 
 ```bash
 sudo ./uninstall.sh
@@ -51,41 +55,41 @@ sudo ./uninstall.sh
 
 ---
 
-## ⚙️ Cấu trúc thư mục
+## ⚙️ Directory Structure
 
-```
-huawei-matebook-e-2023-sound/
-├── install.sh                  # Script cài đặt tự động 1 chạm
-├── uninstall.sh                # Script gỡ bỏ driver
-├── test_speakers.py            # Công cụ kiểm tra âm thanh 4 loa stereo
-├── README.md                   # Tài liệu hướng dẫn sử dụng
+```text
+sound/
+├── install.sh                  # Automated 1-click installer
+├── uninstall.sh                # Clean uninstaller
+├── test_speakers.py            # 4-speaker stereo testing script
+├── README.md                   # Documentation
 ├── firmware/
-│   ├── fs2119_config.dat       # Firmware cấu hình chip FS2119 (Mode 0, 3)
-│   └── huawei-diracr.fw        # Patch HDA Verbs cho CX11970
+│   ├── fs2119_config.dat       # FourSemi FS2119 DSP firmware (Modes 0 & 3)
+│   └── huawei-diracr.fw        # HDA verb patch for Conexant CX11970
 ├── modprobe/
-│   └── huawei-sound.conf       # Cấu hình ALSA kernel options
+│   └── huawei-sound.conf       # ALSA snd-hda-intel kernel options
 ├── daemon/
-│   └── huawei-sound-daemon.py  # Daemon điều khiển I2C & GPIO FourSemi + ALSA Real-time Sync
+│   └── huawei-sound-daemon.py  # I2C/GPIO initialization & ALSA real-time sync daemon
 ├── systemd/
-│   └── huawei-sound-daemon.service # Service tự khởi động ngầm
+│   └── huawei-sound-daemon.service # Systemd background service unit
 └── sleep/
-    └── huawei-sound-sleep.sh   # Hook tự động khôi phục sau khi Sleep
+    └── huawei-sound-sleep.sh   # Systemd suspend/resume hook script
 ```
 
 ---
 
-## 🔬 Giải mã kỹ thuật chính (Technical Highlights)
+## 🔬 Technical Highlights
 
-1. **Trình tự cấp nguồn GPIO:**
-   - Dòng GPIO 72 (`QPIN`): Kích hoạt điện áp nguồn chính.
-   - Dòng GPIO 179 (`PPIN`): Kéo xuống mức thấp (Active-Low) để mở chip FS2119.
-2. **Thanh ghi `0x30` (`FS210X_30H_DACCTRL`):**
-   - Giá trị chuẩn: `0x222c`.
-   - Bit 4 = 0: Unmute Kênh 1 (Loa trên).
-   - Bit 8 = 0: Unmute Kênh 2 (Loa dưới).
-3. **Thanh ghi âm lượng `0x39` & `0x3a`:**
-   - Đặt `0xf000` (Mức Gain 0 dB tối đa, không bị méo tiếng).
-4. **Đồng bộ âm lượng thời gian thực (Real-time ALSA Sync):**
-   - Bộ giải mã Conexant CX11970 chia làm 2 DAC độc lập: DAC `0x22` (Speaker) và DAC `0x23` (Bass Speaker).
-   - Daemon tích hợp luồng lắng nghe sự kiện ALSA (`amixer events`) để tự động đồng bộ tức thời 1:1 giữa Speaker và Bass Speaker.
-   - Khi chỉnh âm lượng trên bàn phím hay giao diện, cả 4 loa cùng tăng/giảm đồng thanh; ở mức thấp nhất âm thanh êm dịu, không bị kẹt loa trầm ở công suất tối đa.
+1. **GPIO Power Sequencing:**
+   - GPIO Line 72 (`QPIN`): Energizes main amplifier supply rail.
+   - GPIO Line 179 (`PPIN`): Pulled Active-Low to enable and initialize the FS2119 chips.
+2. **Amplifier Register `0x30` (`FS210X_30H_DACCTRL`):**
+   - Configured to `0x222c`.
+   - Bit 4 = 0: Unmutes Channel 1 (Top Tweeter).
+   - Bit 8 = 0: Unmutes Channel 2 (Bottom Woofer).
+3. **Volume Registers `0x39` & `0x3a`:**
+   - Set to `0xf000` (0 dB optimal unity gain, preventing audio clipping).
+4. **Real-time ALSA Hardware Volume Sync:**
+   - The CX11970 codec employs two distinct DACs: DAC `0x22` (Speaker) and DAC `0x23` (Bass Speaker).
+   - Standard PipeWire/PulseAudio desktop mixers only adjust DAC `0x22`.
+   - The included daemon runs an efficient ALSA event listener thread (`amixer events`) that instantly synchronizes `cset numid=5,6` with `numid=3,4` in hardware. This ensures volume adjustments remain balanced across all 4 speakers without channel mismatch, even at whisper-quiet levels (< 25%).

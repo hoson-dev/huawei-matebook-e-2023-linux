@@ -1,87 +1,93 @@
-# Huawei MateBook E 2023 - Driver Màn Hình OLED MIPI DSI (Fix Lỗi Đen Màn Hình Trên Linux)
+# Huawei MateBook E 2023 - OLED MIPI DSI Display Driver (Black Screen Fix)
 
-Bộ driver DKMS sửa lỗi **Đen màn hình (Black Screen)** trên máy tính bảng lai 2-trong-1 **Huawei MateBook E 2023 (DRR-W56 / DRR-WXX)** khi cài đặt Linux (Ubuntu, Debian, Fedora, Arch Linux, Linux Mint, Pop!_OS,...).
-
----
-
-## 1. Nguyên nhân lỗi đen màn hình (Black Screen)
-
-Màn hình OLED 12.6 inch (độ phân giải 3072x1920 @ 60/120Hz) trên Huawei MateBook E 2023 sử dụng giao tiếp **Intel MIPI DSI dual-link command mode**.
-
-Kernel Linux mặc định (upstream) chưa có cấu hình panel timing và chuỗi khởi tạo xung nhịp riêng cho panel Huawei. Cụ thể hàm `gen11_dsi_deconfigure_transcoder()` trong driver `i915` tắt cờ `DSI_PERIODIC_FRAME_UPDATE_ENABLE` khi khởi tạo nhưng không bật lại, khiến panel OLED không nhận được khung hình và màn hình tắt ngúm (tối đen hoàn toàn), mặc dù máy vẫn đang chạy bình thường.
-
-Bộ driver này sử dụng cơ chế **DKMS** (Dynamic Kernel Module Support) để thay thế module `i915.ko`, khôi phục chuỗi cập nhật khung hình định kỳ và khởi tạo chính xác cổng `DSI-1`. Nhờ DKMS, driver sẽ tự động biên dịch lại mỗi khi hệ thống cập nhật kernel mới.
+DKMS kernel module driver resolving the **Black Screen on Boot** issue on the **Huawei MateBook E 2023 (`DRR-W56` / `DRR-WXX`)** across Linux distributions (Ubuntu, Debian, Fedora, Arch Linux, Linux Mint, Pop!_OS, etc.).
 
 ---
 
-## 2. Cách truy cập vào máy khi màn hình đang bị đen
+## 1. Root Cause Analysis
 
-Nếu bạn vừa cài đặt Linux và màn hình máy đang bị đen hoàn toàn, hãy chọn 1 trong 3 cách sau để truy cập vào hệ thống trước khi cài đặt:
+The 12.6-inch OLED panel (3072 × 1920 @ 60/120 Hz) on the Huawei MateBook E 2023 interfaces directly with the Intel Alder Lake Iris Xe Graphics via **Intel MIPI DSI dual-link command mode**.
 
-### Cách 1: Dùng màn hình ngoài qua cổng Type-C (Nhanh & Tiện nhất)
-- Cắm máy vào màn hình rời hoặc TV qua cáp USB-C / HDMI Hub. 
-- Màn hình ngoài sẽ hiển thị bình thường. Bạn chỉ cần mở Terminal trên màn hình ngoài để thao tác.
+In upstream Linux kernels, the Intel DRM driver (`i915`):
+- Executes `gen11_dsi_deconfigure_transcoder()`, which clears the `DSI_PERIODIC_FRAME_UPDATE_ENABLE` bit on initialization.
+- Never restores this bit during normal operation.
+- In command mode, the panel relies on periodic updates to generate vblank intervals. Without this bit enabled, frames cease immediately, causing the OLED panel to remain **completely pitch-black**, even though the system boots and runs normally in the background.
 
-### Cách 2: Khởi động tạm thời với tùy chọn `nomodeset` trong GRUB
-1. Khởi động lại máy, giữ phím `Shift` hoặc `Esc` để hiện menu GRUB (nếu GRUB không tự hiện).
-2. Tại dòng Linux đầu tiên, nhấn phím **`e`** trên bàn phím để chỉnh sửa cấu hình boot.
-3. Tìm dòng bắt đầu bằng `linux` (thường kết thúc bằng `quiet splash`).
-4. Thêm dấu cách và gõ `nomodeset` vào cuối dòng đó.
-   - Ví dụ: `... quiet splash nomodeset`
-5. Nhấn **`F10`** (hoặc `Ctrl + X`) để boot vào hệ thống. Màn hình máy sẽ sáng lên ở chế độ đồ họa an toàn (framebuffer cơ bản).
-
-> **LƯU Ý:** `nomodeset` chỉ là giải pháp tạm thời để vào máy cứu hộ. Sau khi cài xong driver DKMS này, bạn **CẦN XOÁ** `nomodeset` khỏi `/etc/default/grub` (nếu có thêm vào đó) để driver i915 mới kích hoạt được màn hình OLED.
-
-### Cách 3: Truy cập từ xa qua SSH
-- Nếu máy đã kết nối Wi-Fi/mạng LAN, bạn có thể dùng điện thoại hoặc một máy tính khác SSH vào máy để thực thi lệnh.
+This package provides a **DKMS (Dynamic Kernel Module Support)** module that patches the `i915` driver, restores the periodic frame update bit, and correctly activates `DSI-1`. Being a DKMS module, it automatically rebuilds whenever your system upgrades to a new kernel version.
 
 ---
 
-## 3. Cài đặt Driver (1-Click Tự Động)
+## 2. How to Access Your System When the Screen is Black
 
-Mở Terminal trong thư mục `matebook-e-dsi-dkms` và chạy script cài đặt tự động:
+If your internal screen is currently black after a fresh Linux install, choose one of these 3 rescue options:
+
+### Option 1: External Monitor via USB-C / HDMI (Fastest & Easiest)
+- Connect your MateBook E to an external monitor or TV via a USB-C cable or USB-C to HDMI adapter.
+- External video output works out-of-the-box. Open a terminal on the external monitor to execute the installation.
+
+### Option 2: Temporary Boot with `nomodeset` in GRUB
+1. Reboot the device. Hold `Shift` or press `Esc` to access the GRUB boot menu.
+2. Highlight your default Linux kernel entry and press **`e`** to edit boot parameters.
+3. Locate the line beginning with `linux` (typically ending with `quiet splash`).
+4. Append `nomodeset` to the end of that line:
+   ```text
+   ... quiet splash nomodeset
+   ```
+5. Press **`F10`** (or `Ctrl + X`) to boot. The system will start using basic framebuffer graphics mode.
+
+> **CRITICAL NOTE:** `nomodeset` is strictly for temporary rescue access. Once you have installed this DKMS driver, you **MUST REMOVE** `nomodeset` from `/etc/default/grub` (and run `sudo update-grub`) so that the Intel `i915` driver can load and initialize the OLED panel natively.
+
+### Option 3: Remote SSH Access
+- If connected to Wi-Fi or local network, access the terminal remotely via SSH from another computer or mobile phone.
+
+---
+
+## 3. Automated 1-Click Installation
+
+Open a terminal inside this directory and run:
 
 ```bash
-cd matebook-e-dsi-dkms
+cd display
 sudo ./install.sh
 ```
 
-### Script cài đặt sẽ tự động:
-1. Phát hiện hệ điều hành (Ubuntu/Debian, Arch Linux, Fedora, v.v.).
-2. Tự động tải và cài đặt các phụ thuộc cần thiết (`dkms`, `build-essential`, `linux-headers-$(uname -r)`).
-3. Đăng ký mã nguồn vào `/usr/src/matebook-e-dsi-1.0.0/`.
-4. Biên dịch module `i915` đã được vá lỗi DSI.
-5. Cài đặt module vào kernel đang sử dụng.
-6. Tự động cập nhật `initramfs` (qua `update-initramfs`, `mkinitcpio`, hoặc `dracut`).
+### The installer automatically:
+1. Detects your distribution package manager (`apt`, `pacman`, `dnf`).
+2. Checks and installs required dependencies (`dkms`, `build-essential`, `linux-headers-$(uname -r)`).
+3. Registers the source tree to `/usr/src/matebook-e-dsi-1.0.0/`.
+4. Compiles the patched `i915` module via DKMS.
+5. Installs the module into your current kernel.
+6. Regenerates the initramfs (`update-initramfs`, `mkinitcpio`, or `dracut`).
+7. Checks `/etc/default/grub` and warns if `nomodeset` is still lingering.
 
-Sau khi cài đặt thành công, khởi động lại máy:
+After installation completes, reboot:
 ```bash
 sudo reboot
 ```
 
-Màn hình OLED 3072x1920 sẽ sáng lên và hoạt động hoàn hảo!
+Your OLED panel will light up at native 3072×1920 resolution!
 
 ---
 
-## 4. Kiểm tra trạng thái hoạt động
+## 4. Diagnostics & Verification
 
-Sau khi khởi động lại, bạn có thể kiểm tra trạng thái hoạt động của driver bất kỳ lúc nào bằng lệnh:
+After rebooting, check driver status anytime by running:
 
 ```bash
 ./check_status.sh
 ```
 
-Lệnh sẽ hiển thị:
-- Trạng thái DKMS (`installed`)
-- Đối soát mã checksum `srcversion` giữa module đang chạy và bản DKMS trên đĩa
-- Trạng thái kết nối màn hình OLED (`DSI-1 connected`)
-- Độ phân giải hiện tại (3072x1920)
+The script will report:
+- DKMS status (`installed`)
+- Module `srcversion` checksum comparison (Running vs Installed)
+- Connector status (`DSI-1 connected`)
+- Current active display resolution & refresh rate
 
 ---
 
-## 5. Gỡ bỏ driver (Khôi phục driver gốc)
+## 5. Uninstallation (Restore Stock Driver)
 
-Nếu bạn muốn gỡ bỏ driver và đưa hệ thống quay lại driver gốc của Linux:
+To remove the DKMS module and return to the stock kernel `i915` driver:
 
 ```bash
 sudo ./uninstall.sh
@@ -90,26 +96,21 @@ sudo reboot
 
 ---
 
-## 6. Cấu trúc thư mục
+## 6. Directory Layout
 
 ```text
-matebook-e-dsi-dkms/
-├── install.sh                     # Script cài đặt tự động 1-click
-├── uninstall.sh                   # Script gỡ bỏ sạch sẽ
-├── check_status.sh                # Script kiểm tra trạng thái driver & cổng DSI-1
-├── README.md                      # Hướng dẫn chi tiết
-├── matebook-e-dsi.patch           # Patch DSI cho driver i915
-├── PKGBUILD                       # File đóng gói cho Arch Linux
-├── zz-matebook-e-dsi-initramfs.hook # Pacman hook tái tạo initramfs cho Arch
-└── src/                           # Toàn bộ mã nguồn driver i915 đã patch
+display/
+├── install.sh                     # Automated 1-click installer
+├── uninstall.sh                   # Clean uninstaller
+├── check_status.sh                # Hardware diagnostic tool
+├── README.md                      # Documentation
+├── matebook-e-dsi.patch           # Unified DSI timing patch
+├── PKGBUILD                       # Arch Linux packaging file
+├── zz-matebook-e-dsi-initramfs.hook # Arch Linux pacman initramfs hook
+└── src/                           # Pre-patched i915 source tree
     ├── Makefile
     ├── dkms.conf
     └── drivers/
         ├── gpu/drm/i915/
         └── platform/x86/intel_ips.h
 ```
-
----
-
-## Tham khảo & Lời cảm ơn
-- Patch dựa trên nghiên cứu và chia sẻ của cộng đồng Arch Linux cho MateBook E 2023 (DRR-W56): [Arch Linux Forum Thread #303555](https://bbs.archlinux.org/viewtopic.php?id=303555).
