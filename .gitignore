@@ -1,0 +1,13 @@
+*.o
+*.ko
+*.mod.c
+*.mod
+*.cmd
+.tmp_versions/
+modules.order
+Module.symvers
+__pycache__/
+*.pyc
+*.pyo
+*.log
+.DS_Store
