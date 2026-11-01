@@ -4,7 +4,18 @@ DKMS kernel module driver resolving the **Black Screen on Boot** issue on the **
 
 ---
 
-## 1. Root Cause Analysis
+## 1. Root Cause Analysis & Kernel Requirements
+
+> [!IMPORTANT]
+> **Kernel Version Requirement:** This driver requires **Linux Kernel 7.0 or newer**.
+> If your system is running an older kernel (e.g. stock Ubuntu 24.04 or Linux Mint 22 with Kernel 6.8), the DKMS build will fail with `bad exit status: 2` because Intel DRM graphics underwent a complete architectural redesign in Kernel 7.0 (`struct intel_display`).
+> 
+> **How to upgrade kernel on Ubuntu / Linux Mint:**
+> ```bash
+> sudo add-apt-repository -y ppa:cappelikan/ppa
+> sudo apt update && sudo apt install -y mainline
+> ```
+> Launch **Mainline**, install Kernel 7.0.x, reboot, and run `./install.sh`.
 
 The 12.6-inch OLED panel (3072 × 1920 @ 60/120 Hz) on the Huawei MateBook E 2023 interfaces directly with the Intel Alder Lake Iris Xe Graphics via **Intel MIPI DSI dual-link command mode**.
 

@@ -79,6 +79,18 @@ huawei-matebook-e-2023-linux/
 
 ## 🖥️ Display: OLED MIPI DSI (Black Screen Fix)
 
+### ⚠️ Kernel Compatibility Requirement
+> [!IMPORTANT]
+> - **Display Driver:** Requires **Linux Kernel 7.0 or newer** (e.g. Ubuntu 26.04+, Arch Linux, modern Fedora).
+> - **Reason:** Intel DRM graphics underwent a complete architectural redesign in Kernel 7.0 (introducing `struct intel_display`). The DSI patch requires this modern display pipeline. Attempting to compile on older kernels (such as stock Ubuntu 24.04 or Linux Mint 22 on Kernel 6.8) will fail with DKMS `bad exit status: 2`.
+> - **For Ubuntu 24.04 / Linux Mint 22 users:** You can easily upgrade your kernel to 7.0+ using the Ubuntu Mainline Kernel Installer:
+>   ```bash
+>   sudo add-apt-repository -y ppa:cappelikan/ppa
+>   sudo apt update && sudo apt install -y mainline
+>   ```
+>   Launch **Mainline**, install the latest **7.0.x** kernel build, reboot into the new kernel, and run `./install-all.sh`.
+> - **Audio Driver:** The Quad-Speaker Audio driver (`sound/`) is independent and works on **ALL** kernel versions (6.x, 7.x, etc.).
+
 ### The Problem
 The MateBook E 2023 uses a high-resolution 12.6" OLED display driven over **Intel MIPI DSI dual-link command mode**. 
 In upstream Linux kernels, `gen11_dsi_deconfigure_transcoder()` in the `i915` driver clears the periodic frame update bit during initialization and never re-enables it. Because command-mode panels require periodic updates to generate vblank interrupts, the panel stops receiving frames, resulting in a **completely pitch-black screen** while the OS continues to run normally in the background.
